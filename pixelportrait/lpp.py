@@ -1,6 +1,6 @@
 from collections import defaultdict, namedtuple
 from functools import partial
-from itertools import izip_longest
+from itertools import izip_longest, chain
 from math import sin, cos, radians
 from random import sample
 from time import strftime
@@ -63,7 +63,7 @@ def rotv(angle, v):
     return mulm(rotm(angle), v)
 
 
-def chunker(iterable, n):
+def stepper(iterable, n):
     return (filter(None, c) for c in izip_longest(*([iter(iterable)] * n)))
 
 
@@ -129,7 +129,8 @@ class Brick(object):
 
 
 class Mosaic(object):
-    def __init__(self, bricks):
+    def __init__(self, img, bricks):
+        self.img = img
         self.bricks = bricks
 
     def __iter__(self):
@@ -144,9 +145,14 @@ class Mosaic(object):
         yield strftime('0 // Generated %H:%M:%S %d %b %Y\r\n')
         yield '0 // Erik van Zijst, erik.van.zijst@gmail.com\r\n\r\n'
 
-        for chunk in chunker(self.bricks, 20):
-            for b in chunk:
-                yield b.ldraw()
+        seen = set()
+        for step in stepper(sorted(chain(
+                *[[(s.x + s.z * self.img.width, b) for s in b.studs] for b in
+                  self.bricks])), self.img.width):
+            for _, brick in step:
+                if brick not in seen:
+                    yield brick.ldraw()
+                    seen.add(brick)
             yield '0 STEP\r\n'
 
 
@@ -193,4 +199,4 @@ class Pixelator(object):
                             todo.difference_update(shape.studs)
                             bricks.add(shape.paint(col))
                             break
-        return Mosaic(bricks)
+        return Mosaic(img, bricks)
