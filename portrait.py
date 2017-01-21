@@ -24,7 +24,6 @@ if __name__ == '__main__':
     parser.add_argument('image', nargs='?',
                         help='the image file (stdin if omitted)')
     args = parser.parse_args()
-    print args
 
     map((open(args.file, 'w') if args.file else sys.stdout).write,
         Pixelator(BRICKS, {'blue': BLUES, 'orange': YELLOWS}[args.pal])

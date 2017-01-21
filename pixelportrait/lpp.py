@@ -4,7 +4,6 @@ from itertools import chain
 from math import sin, cos, radians
 from operator import xor
 from random import sample
-from textwrap import dedent
 from types import NoneType
 
 import time
@@ -105,15 +104,6 @@ class Brick(object):
         """Returns the brick's studs in LDraw coordinates."""
         return {(v + self._loc) for v in
                 map(partial(rotv, self._angle), self._points)}
-    #
-    # @propertycache
-    # def logstuds(self):
-    #     """Returns the bricks's studs in logical, normalized coordinates."""
-    #     return {map(partial(mulm((
-    #         (.05, 0, 0),
-    #         (0, .05, 0),
-    #         (0, 0, .05),
-    #     ))), self.studs)}
 
     def __eq__(self, other):
         return (self.name == other.name and self._points == other._points and
@@ -199,7 +189,7 @@ class Pixelator(object):
 
         layers = defaultdict(set)
         for i, c in enumerate(img.getdata(0)):
-            layers[colormap[c]].add(Vec(i % img.width * 20, i / img.width * 20))
+            layers[colormap[c]].add(Vec(i % img.width * 20, i / img.width * -20))
 
         bricks = set()
         for col, todo in layers.iteritems():
