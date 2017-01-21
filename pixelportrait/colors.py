@@ -1,20 +1,17 @@
 from collections import namedtuple
 
-from ansicolor import rgb2short
 
-
-class Color(namedtuple('Color_', 'blname blcode html')):
+class Color(namedtuple('Color_', 'name code html')):
+    # We're using BrickLink names and codes.
     # http://ryanhowerter.net/colors.html
     # https://www.bricklink.com/catalogColors.asp
     __slots__ = ()
-    @property
-    def rgb(self):
-        return (lambda c:
-                (int(c[0:2], 16), int(c[2:4], 16), int(c[4:6], 16)))(self.html)
 
-    @property
-    def ansi(self):
-        return rgb2short(self.html)[0]
+    def __unicode__(self):
+        return self.name
+
+    def __str__(self):
+        return unicode(self).encode('utf-8')
 
 
 BLACK = Color('black', 11, '1b2a34')
