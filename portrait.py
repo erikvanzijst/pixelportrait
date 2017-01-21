@@ -16,7 +16,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         description='Turns an image into a Lego pixel-portrait. The image '
                     'must use 5 colors only.')
-    parser.add_argument('-p', '--palette', choices=('blue', 'orange', 'gray'),
+    parser.add_argument('-p', '--palette', choices=('blue', 'orange'),
                         default='orange', dest='pal',
                         help='the Lego color palette to use')
     parser.add_argument('-o', '--out', dest='file',
@@ -27,4 +27,5 @@ if __name__ == '__main__':
 
     map((open(args.file, 'w') if args.file else sys.stdout).write,
         Pixelator(BRICKS, {'blue': BLUES, 'orange': YELLOWS}[args.pal])
-        .pixelate(Image.open(sys.stdin if (args.image in ('-', None)) else args.image)).ldraw())
+        .pixelate(Image.open(
+            sys.stdin if (args.image in ('-', None)) else args.image)).ldraw())

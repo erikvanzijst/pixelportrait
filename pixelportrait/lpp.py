@@ -1,12 +1,11 @@
 from collections import defaultdict, namedtuple
 from functools import partial
-from itertools import chain
+from itertools import izip_longest
 from math import sin, cos, radians
-from operator import xor
 from random import sample
+from time import strftime
 from types import NoneType
 
-import time
 
 from pixelportrait.colors import Color
 
@@ -64,6 +63,10 @@ def rotv(angle, v):
     return mulm(rotm(angle), v)
 
 
+def chunker(iterable, n):
+    return (filter(None, c) for c in izip_longest(*([iter(iterable)] * n)))
+
+
 class Brick(object):
     def __init__(self, name, nr, points, color=None, loc=Vec(0, 0), angle=0,
                  ldraw_file=None):
@@ -105,20 +108,6 @@ class Brick(object):
         return {(v + self._loc) for v in
                 map(partial(rotv, self._angle), self._points)}
 
-    def __eq__(self, other):
-        return (self.name == other.name and self._points == other._points and
-                self.nr == other.nr and self._loc == other._loc and
-                self.color == other.color and self._angle == other._angle and
-                self.ldraw_file == other.ldraw_file)
-
-    def __ne__(self, other):
-        return not (self == other)
-
-    def __hash__(self):
-        return reduce(xor, map(hash, chain(
-            (self.name, self.nr, self.color, self._loc, self._angle,
-             self.ldraw_file), self._points)), 0)
-
     def __unicode__(self):
         return 'Brick(%s, %s, %s)' % (self.name, self.nr, self.color)
 
@@ -133,7 +122,9 @@ class Brick(object):
         return '1 %s  %s  %s %s %s  %s\r\n' % (
             '0x2' + self.color.html.upper() if self.color else 1,
             ' 0 '.join(map(str, self._loc)),
-            ' '.join(map(str, rm[0])), ' '.join(map(str, rm[1])), ' '.join(map(str, rm[2])),
+            ' '.join(map(str, rm[0])),
+            ' '.join(map(str, rm[1])),
+            ' '.join(map(str, rm[2])),
             self.ldraw_file)
 
 
@@ -150,11 +141,13 @@ class Mosaic(object):
     def ldraw(self):
         """Returns a generator containing the mosaic in LDraw format."""
         yield '0 // Lego Pixel Portrait Generator\r\n'
-        yield time.strftime('0 // Generated %H:%M:%S %d %b %Y\r\n')
+        yield strftime('0 // Generated %H:%M:%S %d %b %Y\r\n')
         yield '0 // Erik van Zijst, erik.van.zijst@gmail.com\r\n\r\n'
 
-        for b in self.bricks:
-            yield b.ldraw()
+        for chunk in chunker(self.bricks, 20):
+            for b in chunk:
+                yield b.ldraw()
+            yield '0 STEP\r\n'
 
 
 class Pixelator(object):
@@ -180,7 +173,7 @@ class Pixelator(object):
         """
         img = img.convert('RGB').convert('L')
         try:
-            colormap = {col: self.palette[i] for i, col in
+            colmap = {col: self.palette[i] for i, col in
                         enumerate(sorted(c[1] for c in img.getcolors()))}
         except IndexError:
             raise ValueError(
@@ -189,7 +182,7 @@ class Pixelator(object):
 
         layers = defaultdict(set)
         for i, c in enumerate(img.getdata(0)):
-            layers[colormap[c]].add(Vec(i % img.width * 20, i / img.width * -20))
+            layers[colmap[c]].add(Vec(i % img.width * 20, i / img.width * -20))
 
         bricks = set()
         for col, todo in layers.iteritems():
