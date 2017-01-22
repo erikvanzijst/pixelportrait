@@ -120,8 +120,8 @@ class Brick(object):
             raise ValueError('Brick not mapped to an ldraw object file.')
         rm = rotm(self._angle)
         return '1 %s  %s  %s %s %s  %s\r\n' % (
-            '0x2' + self.color.html.upper() if self.color else 1,
-            ' 0 '.join(map(str, self._loc)),
+            self.color.code if self.color else 1,
+            ' 8 '.join(map(str, self._loc)),
             ' '.join(map(str, rm[0])),
             ' '.join(map(str, rm[1])),
             ' '.join(map(str, rm[2])),
@@ -148,7 +148,7 @@ class Mosaic(object):
         seen = set()
         for step in stepper(sorted(chain(
                 *[[(s.x + s.z * self.img.width, b) for s in b.studs] for b in
-                  self.bricks])), self.img.width):
+                  self.bricks]), reverse=True), self.img.width):
             for _, brick in step:
                 if brick not in seen:
                     yield brick.ldraw()
@@ -180,7 +180,7 @@ class Pixelator(object):
         img = img.convert('RGB').convert('L')
         try:
             colmap = {col: self.palette[i] for i, col in
-                        enumerate(sorted(c[1] for c in img.getcolors()))}
+                      enumerate(sorted(c[1] for c in img.getcolors()))}
         except IndexError:
             raise ValueError(
                 'Image color count (%d) does not match palette width (%d)' %
@@ -194,7 +194,8 @@ class Pixelator(object):
         for col, todo in layers.iteritems():
             for shapes in self.bricks:
                 for vec in sample(list(todo), len(todo)):
-                    for shape in (s.translate(vec) for s in shapes):
+                    for shape in (s.translate(vec) for s in
+                                  sample(shapes, len(shapes))):
                         if all(p in todo for p in shape.studs):
                             todo.difference_update(shape.studs)
                             bricks.add(shape.paint(col))

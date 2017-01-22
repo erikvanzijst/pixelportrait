@@ -5,12 +5,19 @@ import sys
 from PIL import Image
 
 from pixelportrait.bricks import (PLATE1X2, PLATE2X2, CORNER2X2, PLATE1X1,
-                                  PLATE1X3)
+                                  PLATE1X3, PLATE2X3, PLATE1X4)
 from pixelportrait.colors import BLUES, YELLOWS
 from pixelportrait.lpp import Pixelator
 
 
-BRICKS = (PLATE2X2, CORNER2X2, PLATE1X3, PLATE1X2, PLATE1X1)
+BRICKS = (
+    PLATE2X3,
+    # PLATE1X4,
+    PLATE2X2,
+    # CORNER2X2,
+    # PLATE1X3,
+    PLATE1X2,
+    PLATE1X1)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(

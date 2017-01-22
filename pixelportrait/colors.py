@@ -1,10 +1,9 @@
 from collections import namedtuple
 
 
-class Color(namedtuple('Color_', 'name code html')):
-    # We're using BrickLink names and codes.
-    # http://ryanhowerter.net/colors.html
-    # https://www.bricklink.com/catalogColors.asp
+class Color(namedtuple('Color_', 'name code')):
+    # We're using Lego names and LDraw codes.
+    # http://www.ldraw.org/article/547.html
     __slots__ = ()
 
     def __unicode__(self):
@@ -14,16 +13,16 @@ class Color(namedtuple('Color_', 'name code html')):
         return unicode(self).encode('utf-8')
 
 
-BLACK = Color('black', 11, '1b2a34')
-WHITE = Color('white', 1, 'f4f4f4')
+BLACK = Color('black', 0)
+WHITE = Color('white', 15)
 
-RED = Color('red', 5, 'b40000')
-ORANGE = Color('orange', 4, 'd67923')
-YELLOW = Color('yellow', 3, 'fac80a')
+RED = Color('red', 4)
+ORANGE = Color('orange', 25)
+YELLOW = Color('yellow', 14)
 
-DARK_BLUE = Color('dark blue', 63, '19325a')
-BLUE = Color('blue', 7, '1e5aa8')
-MEDIUM_BLUE = Color('medium blue', 42, '7396c8')
+DARK_BLUE = Color('dark blue', 272)
+BLUE = Color('blue', 1)
+MEDIUM_BLUE = Color('medium blue', 73)
 
 
 BLUES = (BLACK, DARK_BLUE, BLUE, MEDIUM_BLUE, WHITE)
