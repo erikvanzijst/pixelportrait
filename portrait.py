@@ -12,7 +12,7 @@ from pixelportrait.lpp import Pixelator, Vec
 
 BASES = {(32, 32): bricks.BASE32X32, (48, 48): bricks.BASE48X48,
          (50, 50): bricks.BASE50X50}
-BRICKS = (
+PLATES = (
     bricks.PLATE2X3,
     # bricks.PLATE1X4,
     bricks.PLATE2X2,
@@ -20,6 +20,11 @@ BRICKS = (
     # bricks.PLATE1X3,
     bricks.PLATE1X2,
     bricks.PLATE1X1)
+TILES = (
+    bricks.TILE2X2,
+    bricks.TILE1X2,
+    bricks.TILE1X1
+)
 BLUES = (col.BLACK, col.DARK_BLUE, col.BLUE, col.MEDIUM_BLUE, col.WHITE)
 YELLOWS = (col.BLACK, col.RED, col.ORANGE, col.YELLOW, col.WHITE)
 
@@ -30,6 +35,8 @@ if __name__ == '__main__':
     parser.add_argument('-p', '--palette', choices=('blue', 'orange'),
                         default='orange', dest='pal',
                         help='the Lego color palette to use')
+    parser.add_argument('-n', '--no-studs', dest='tiles', action='store_true',
+                        help='use tiles without studs')
     parser.add_argument('-o', '--out', dest='file',
                         help='write to file (stdout when omitted)')
     parser.add_argument('image', nargs='?',
@@ -51,5 +58,6 @@ if __name__ == '__main__':
                                       min(p1.z, -p2.z)),
                                   base.studs, Vec(0, 0, 0)))
                 .translate(Vec(0, 8, 0)).ldraw() if base else ''
-        ), Pixelator(BRICKS, {'blue': BLUES, 'orange': YELLOWS}[args.pal])
+        ), Pixelator(TILES if args.tiles else PLATES,
+                     {'blue': BLUES, 'orange': YELLOWS}[args.pal])
             .pixelate(img).ldraw()))
