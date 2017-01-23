@@ -3,24 +3,22 @@ from functools import partial
 from itertools import izip_longest, chain
 from math import sin, cos, radians
 from random import sample
-from time import strftime
 from types import NoneType
-
 
 from pixelportrait.colors import Color
 
 
-class Vec(namedtuple('Vec', 'x z')):
+class Vec(namedtuple('Vec', 'x y z')):
     __slots__ = ()
 
     def __add__(self, other):
-        return Vec(self.x + other.x, self.z + other.z)
+        return Vec(self.x + other.x, self.y + other.y, self.z + other.z)
 
     def __sub__(self, other):
-        return Vec(self.x - other.x, self.y - other.z)
+        return Vec(self.x - other.x, self.y - other.y, self.y - other.z)
 
     def __mul__(self, other):
-        return Vec(self.x * other.x, self.z * other.z)
+        return Vec(self.x * other.x, self.y * other.y, self.z * other.z)
 
 
 class propertycache(object):
@@ -37,10 +35,11 @@ class propertycache(object):
 
 
 def mulm(m, v):
-    """Applies the specified 3x3 matrix to the given 2d (x, z) vector."""
+    """Applies the specified 3x3 matrix to the given vector."""
     return Vec(
-        m[0][0] * v.x + m[0][1] * 0 + m[0][2] * v[1],
-        m[2][0] * v.x + m[2][1] * 0 + m[2][2] * v[1]
+        m[0][0] * v.x + m[0][1] * v.y + m[0][2] * v.z,
+        m[1][0] * v.x + m[1][1] * v.y + m[1][2] * v.z,
+        m[2][0] * v.x + m[2][1] * v.y + m[2][2] * v.z
     )
 
 
@@ -68,7 +67,7 @@ def stepper(iterable, n):
 
 
 class Brick(object):
-    def __init__(self, name, nr, points, color=None, loc=Vec(0, 0), angle=0,
+    def __init__(self, name, nr, points, color=None, loc=Vec(0, 0, 0), angle=0,
                  ldraw_file=None):
         assert isinstance(color, (Color, NoneType))
         self.name = name
@@ -121,7 +120,7 @@ class Brick(object):
         rm = rotm(self._angle)
         return '1 %s  %s  %s %s %s  %s\r\n' % (
             self.color.code if self.color else 1,
-            ' 8 '.join(map(str, self._loc)),
+            ' '.join(map(str, self._loc)),
             ' '.join(map(str, rm[0])),
             ' '.join(map(str, rm[1])),
             ' '.join(map(str, rm[2])),
@@ -141,35 +140,27 @@ class Mosaic(object):
 
     def ldraw(self):
         """Returns a generator containing the mosaic in LDraw format."""
-        yield '0 // Lego Pixel Portrait Generator\r\n'
-        yield strftime('0 // Generated %H:%M:%S %d %b %Y\r\n')
-        yield '0 // Erik van Zijst, erik.van.zijst@gmail.com\r\n\r\n'
-
         seen = set()
         for step in stepper(sorted(chain(
                 *[[(s.x + s.z * self.img.width, b) for s in b.studs] for b in
                   self.bricks]), reverse=True), self.img.width):
+            yield '0 STEP\r\n' if seen and step else ''
             for _, brick in step:
                 if brick not in seen:
-                    yield brick.ldraw()
                     seen.add(brick)
-            yield '0 STEP\r\n'
+                    yield brick.ldraw()
 
 
 class Pixelator(object):
     def __init__(self, bricks, palette):
+        def org(b):
+            return b.translate(reduce(
+                lambda p1, p2: Vec(max(p1.x, -p2.x), 0, max(p1.z, -p2.z)),
+                               b.studs, Vec(0, 0, 0)))
         self.palette = palette
         self.bricks = [
-            [self._to_origin(b.rotate(a)) for a in xrange(0, 360, 90)]
+            [org(b.rotate(a)) for a in xrange(0, 360, 90)]
             for b in bricks]
-
-    def _to_origin(self, brick):
-        """Translates a Brick instance to the origin and returns a new Brick
-        instance that reflects the transformation.
-        """
-        return brick.translate(reduce(lambda p1, p2:
-                                      Vec(max(p1.x, -p2.x), max(p1.z, -p2.z)),
-                                      brick.studs, Vec(0, 0)))
 
     def pixelate(self, img):
         """Computes a Lego mosaic for the specified image.
@@ -179,8 +170,8 @@ class Pixelator(object):
         """
         img = img.convert('RGB').convert('L')
         try:
-            colmap = {col: self.palette[i] for i, col in
-                      enumerate(sorted(c[1] for c in img.getcolors()))}
+            cmap = {col: self.palette[i] for i, col in
+                    enumerate(sorted(c[1] for c in img.getcolors()))}
         except IndexError:
             raise ValueError(
                 'Image color count (%d) does not match palette width (%d)' %
@@ -188,7 +179,7 @@ class Pixelator(object):
 
         layers = defaultdict(set)
         for i, c in enumerate(img.getdata(0)):
-            layers[colmap[c]].add(Vec(i % img.width * 20, i / img.width * -20))
+            layers[cmap[c]].add(Vec(i % img.width * 20, 0, i / img.width * -20))
 
         bricks = set()
         for col, todo in layers.iteritems():

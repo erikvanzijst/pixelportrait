@@ -14,6 +14,7 @@ class Color(namedtuple('Color_', 'name code')):
 
 
 BLACK = Color('black', 0)
+GREY = Color('grey', 7)
 WHITE = Color('white', 15)
 
 RED = Color('red', 4)
@@ -23,7 +24,3 @@ YELLOW = Color('yellow', 14)
 DARK_BLUE = Color('dark blue', 272)
 BLUE = Color('blue', 1)
 MEDIUM_BLUE = Color('medium blue', 73)
-
-
-BLUES = (BLACK, DARK_BLUE, BLUE, MEDIUM_BLUE, WHITE)
-YELLOWS = (BLACK, RED, ORANGE, YELLOW, WHITE)
