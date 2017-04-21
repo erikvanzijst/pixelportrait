@@ -15,6 +15,8 @@ class Color(namedtuple('Color_', 'name code')):
 
 BLACK = Color('black', 0)
 GREY = Color('grey', 7)
+LIGHT_BLUISH_GRAY = Color('Medium Stone Grey', 71)
+DARK_BLUISH_GRAY = Color('Dark Stone Grey', 72)
 WHITE = Color('white', 15)
 
 RED = Color('red', 4)

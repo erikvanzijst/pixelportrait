@@ -168,7 +168,7 @@ class Pixelator(object):
         Returns a dict of colors from the palette mapped to values of sets of
         shapes.
         """
-        img = img.convert('RGB').convert('L')
+        # img = img.convert('RGB').convert('L')
         try:
             cmap = {col: self.palette[i] for i, col in
                     enumerate(sorted(c[1] for c in img.getcolors()))}
